@@ -165,7 +165,6 @@ func publishSingle(spec imageSpec, stamper *compat.Stamper) (string, error) {
 		return "", fmt.Errorf("error reading image: %v", err)
 	}
 	stampedName := stamper.Stamp(spec.name)
-
 	var ref name.Reference
 	if *imgChroot != "" {
 		n := path.Join(*imgChroot, stampedName)
@@ -187,11 +186,7 @@ func publishSingle(spec imageSpec, stamper *compat.Stamper) (string, error) {
 	}
 
 	if *loadDaemon {
-		d, err := img.Digest()
-		if err != nil {
-			return "", fmt.Errorf("unable to get digest of image %v", ref.Name())
-		}
-		tag, err := name.NewTag(fmt.Sprintf("%s:%s", ref.Context(), d.Hex))
+		tag, err := name.NewTag(ref.Name())
 		if err != nil {
 			return "", fmt.Errorf("unable to create tag %v: %v", ref.Name(), err)
 		}
@@ -200,7 +195,7 @@ func publishSingle(spec imageSpec, stamper *compat.Stamper) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("unable to load image into daemon %v: %v", ref.Name(), err)
 		}
-		return fmt.Sprintf("%s:%s", ref.Context(), d.Hex), nil
+		return ref.Name(), nil
 	} else {
 		if err := remote.Write(ref, img, remote.WithAuth(auth)); err != nil {
 			return "", fmt.Errorf("unable to push image %v: %v", ref.Name(), err)
